@@ -4,10 +4,7 @@
   (with-open-file (s input :direction :input)
     (loop for line = (read-line s nil)
        for row = (read-from-string (format nil "(~A)" line))
-       while line summing
-	 (if (= (length (remove-duplicates row)) (length row))
-	     1
-	     0))))
+       while line counting (= (length (remove-duplicates row)) (length row)))))
 
 (defun anagram-p (string1 string2)
   (let ((explode1 (coerce string1 'list))
@@ -18,7 +15,4 @@
   (with-open-file (s input :direction :input)
     (loop for line = (read-line s nil)
        for row = (read-from-string (format nil "(~A)" line))
-       while line summing
-	 (if (= (length (remove-duplicates row :test #'anagram-p :key #'symbol-name)) (length row))
-	     1
-	     0))))
+       while line counting (= (length (remove-duplicates row :test #'anagram-p :key #'symbol-name)) (length row)))))
