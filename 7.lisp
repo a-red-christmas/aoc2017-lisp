@@ -1,15 +1,14 @@
 (in-package #:cl-user)
 
 ;;; a way to solve part 1 without building any trees at all
-#+nil
-(defun eliminate (input)
-  (with-open-file (s input :direction :input)
-    (loop with rows = (loop for line = (read-line s nil)
-			 while line for parsed = (remove #\> (remove #\- (remove #\, line)))
-			 for row = (read-from-string (format nil "(~A)" parsed)) collecting row)
-       for row in rows for node = (car row)
-       while (find-if #'(lambda (entry) (member node (cddr entry))) rows)
-       finally (return node))))
+;; (defun eliminate (input)
+;;   (with-open-file (s input :direction :input)
+;;     (loop with rows = (loop for line = (read-line s nil)
+;; 			 while line for parsed = (remove #\> (remove #\- (remove #\, line)))
+;; 			 for row = (read-from-string (format nil "(~A)" parsed)) collecting row)
+;;        for row in rows for node = (car row)
+;;        while (find-if #'(lambda (entry) (member node (cddr entry))) rows)
+;;        finally (return node))))
 
 (defun build-tree (input)
   (with-open-file (s input :direction :input)
