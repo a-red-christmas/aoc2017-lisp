@@ -1,5 +1,6 @@
 (in-package #:cl-user)
 
+;;; part 1
 (defun mhd (n)
   (if (= n 1)
       0
@@ -7,14 +8,50 @@
 	     (offset (mod (- n (expt (1- (* num 2)) 2)) (* 2 num))))
 	(+ num (abs (- offset num))))))
 
-(defun nsum (matrix y x)
-  (let ((sub (make-array '(3 3) :displaced-to matrix :displaced-index-offset (array-row-major-index matrix (1- y) (1- x)))))
-    (setf (aref sub 0 0) (loop for i from 0 below (* 3 3) summing (row-major-aref sub i))))) ;assumption is, the element we set is zero (unfilled)
+;;; part 2
+(defun memoize (cache y x val)
+  (unless (gethash y cache)
+    (setf (gethash y cache) (make-hash-table)))
+  (setf (gethash x (gethash y cache)) val))
 
-(defun spiral2 (n)
-  (let* ((size (ceiling (expt n 0.333)))
-	 (matrix (make-array (list size size) :initial-element 0))
-	 (y (ceiling size 2))
-	 (x (ceiling size 2)))
-    (setf (aref matrix y x) 1)
-    ))
+(defun recall (cache y x)
+  (if (gethash y cache)
+      (gethash x (gethash y cache) 0)
+      0))
+
+(defun adjacent (cache yo xo)
+  (print (loop for y from (1- yo) to (1+ yo) summing
+       (loop for x from (1- xo) to (1+ xo) summing (recall cache y x)))))
+
+(defun spiral (n)
+  (let ((y 0)
+	(x 0)
+	(cache (make-hash-table)))
+    (memoize cache 0 0 1)
+    (loop named outer with c = 1
+       for l from 1 do
+	 (incf x)
+	 (memoize cache y x (adjacent cache y x))
+	 (when (= c n) (return-from outer (recall cache y x)))
+	 (loop repeat l do
+	      (incf y)
+	      (incf c)
+	      (memoize cache y x (adjacent cache y x))
+	      (when (= c n) (return-from outer (recall cache y x))))
+	 (loop repeat (1+ l) do
+	      (incf x)
+	      (incf c)
+	      (memoize cache y x (adjacent cache y x))
+	      (when (= c n) (return-from outer (recall cache y x))))
+	 (loop repeat (1+ l) do
+	      (decf y)
+	      (incf c)
+	      (memoize cache y x (adjacent cache y x))
+	      (when (= c n) (return-from outer (recall cache y x))))
+	 (loop repeat (1- l) do
+	      (incf y)
+	      (incf c)
+	      (memoize cache y x (adjacent cache y x))
+	      (when (= c n) (return-from outer (recall cache y x))))
+	 (incf y)
+	 (incf c))))
