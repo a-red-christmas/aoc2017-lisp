@@ -20,7 +20,7 @@
       0))
 
 (defun adjacent (cache yo xo)
-  (print (loop for y from (1- yo) to (1+ yo) summing
+  (print p(loop for y from (1- yo) to (1+ yo) summing
        (loop for x from (1- xo) to (1+ xo) summing (recall cache y x)))))
 
 (defun spiral (n)
