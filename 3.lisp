@@ -20,8 +20,8 @@
       0))
 
 (defun adjacent (cache yo xo)
-  (print p(loop for y from (1- yo) to (1+ yo) summing
-       (loop for x from (1- xo) to (1+ xo) summing (recall cache y x)))))
+  (loop for y from (1- yo) to (1+ yo) summing
+       (loop for x from (1- xo) to (1+ xo) summing (recall cache y x))))
 
 (defun spiral (n)
   (let ((y 0)
@@ -29,29 +29,27 @@
 	(cache (make-hash-table)))
     (memoize cache 0 0 1)
     (loop named outer with c = 1
-       for l from 1 do
-	 (incf x)
-	 (memoize cache y x (adjacent cache y x))
+       with l = 0 do
 	 (when (= c n) (return-from outer (recall cache y x)))
-	 (loop repeat l do
-	      (incf y)
-	      (incf c)
-	      (memoize cache y x (adjacent cache y x))
-	      (when (= c n) (return-from outer (recall cache y x))))
 	 (loop repeat (1+ l) do
 	      (incf x)
 	      (incf c)
-	      (memoize cache y x (adjacent cache y x))
-	      (when (= c n) (return-from outer (recall cache y x))))
+	      (when (> (memoize cache y x (adjacent cache y x)) n)
+		(return-from outer (recall cache y x))))
+	 (loop repeat (1+ l) do
+	      (incf y)
+	      (incf c)
+	      (when (> (memoize cache y x (adjacent cache y x)) n)
+		(return-from outer (recall cache y x))))
+	 (incf l)
+	 (loop repeat (1+ l) do
+	      (decf x)
+	      (incf c)
+	      (when (> (memoize cache y x (adjacent cache y x)) n)
+		(return-from outer (recall cache y x))))
 	 (loop repeat (1+ l) do
 	      (decf y)
 	      (incf c)
-	      (memoize cache y x (adjacent cache y x))
-	      (when (= c n) (return-from outer (recall cache y x))))
-	 (loop repeat (1- l) do
-	      (incf y)
-	      (incf c)
-	      (memoize cache y x (adjacent cache y x))
-	      (when (= c n) (return-from outer (recall cache y x))))
-	 (incf y)
-	 (incf c))))
+	      (when (> (memoize cache y x (adjacent cache y x)) n)
+		(return-from outer (recall cache y x))))
+	 (incf l))))
