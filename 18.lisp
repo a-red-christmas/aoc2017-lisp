@@ -41,8 +41,9 @@
 	  (when dest-reg
 	    (setf (gethash dest-reg registers) message)
 	    (incf pc))
-	  (loop for command = (print (aref program pc))
+	  (loop for command = (aref program pc)
 	     while (<= 0 pc (1- (length program))) do
+	       (format t "~%pid ~D: ~A; arg1 = ~D arg2 = ~D" id command (fetch (second command)) (fetch (third command)))
 	       (case (first command)
 		 (set (setf (gethash (second command) registers) (fetch (third command))))
 		 (add (incf (gethash (second command) registers 0) (fetch (third command))))
@@ -63,6 +64,7 @@
 	    (blocks (make-array 2 :initial-element nil))
 	    (queues (make-array 2 :initial-contents '(()())))
 	    (count 0)
+	    (terminated (make-array 2 :initial-element nil))
 	    (processes (make-array 2 :initial-contents (list (make-interpreter program 0 queues)
 							     (make-interpreter program 1 queues
 									       #'(lambda () (incf count)))))))
@@ -71,9 +73,12 @@
 	 for pid = 0 then alter
 	 for alter = (if (zerop pid) 1 0)
 	 for qin = (aref queues alter) do
-	   (when (and (not start) (null (aref queues pid)) (null (aref queues alter)))
+	   (when (or (and (aref terminated pid) (null (aref queues pid)))
+		     (and (not start) (null (aref queues pid)) (null (aref queues alter))))
 	     (return count))
-	   (handler-case (funcall (aref processes pid) (car (last qin)))
-	     (error () (return (+ count (length (aref queues 0))))))
-	   (setf (aref blocks pid) nil
-		 (aref queues alter) (butlast qin))))))
+	   (handler-case (unless (aref terminated pid)
+			   (funcall (aref processes pid) (car (last qin)))
+			   (setf (aref blocks pid) nil
+				 (aref queues alter) (butlast qin)))
+	     (error () (setf (aref terminated pid) t) (when (aref terminated alter)
+							(return count))))))))
